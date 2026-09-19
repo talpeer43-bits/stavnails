@@ -1,0 +1,20 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.env
+.venv
+env/
+venv/
+
+# Local DB - do NOT push (Railway uses PostgreSQL)
+salon.db
+
+# Cloudflare binary
+cloudflared.exe
+
+# Windows
+Thumbs.db
+desktop.ini

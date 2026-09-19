@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ציפורניים של סתיו | קביעת תור אונליין</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-content">
+      <a href="/" class="brand">
+        <div class="brand-icon">💅</div>
+        <div>
+          <div class="brand-name" id="navSalonName">ציפורניים של סתיו</div>
+          <div class="brand-tagline" data-i18n="tagline">אומנות וטיפוח הציפורן</div>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <button id="langToggleBtn" class="btn-lang" onclick="toggleLanguage()">
+          🌐 <span id="langLabel">English</span>
+        </button>
+        <a href="/admin" class="btn-admin-link" data-i18n="adminLink">ניהול סטודיו</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-bg-accent"></div>
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <div class="hero-tag" data-i18n="heroTag">✨ חווית מניקור ופדיקור יוקרתית</div>
+        <h1 class="hero-title" data-i18n="heroTitle">הציפורניים שלך, <br><span>האומנות והשלמות שלנו.</span></h1>
+        <p class="hero-desc" data-i18n="heroDesc">
+          מניקור רוסי מדויק, מבנה אנטומי מושלם, לק ג'ל בעמידות גבוהה וחיזוק הציפורן הטבעית בסטנדרט סטריליזציה ומקצועיות ללא פשרות.
+        </p>
+        <div class="hero-cta-group">
+          <button class="btn-primary" onclick="openBookingModal()">
+            <span>💅</span> <span data-i18n="bookNowBtn">קביעת תור עכשיו</span>
+          </button>
+          <a href="#services" class="btn-secondary">
+            <span data-i18n="exploreServicesBtn">מחירון וטיפולים</span> <span>↓</span>
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card-stack">
+          <div class="hero-main-card">
+            <a href="#reviews" style="text-decoration: none; color: inherit;">
+              <div class="hero-rating-box">
+                <div class="rating-stars" id="heroStars">★★★★★</div>
+                <div class="rating-text" id="heroRatingText" data-i18n="ratingScore">חוות דעת של לקוחות אמיתיות</div>
+              </div>
+            </a>
+            <ul class="hero-features-list">
+              <li class="hero-feature-item">
+                <span class="feature-check">✓</span>
+                <span data-i18n="featSterile">100% סטריליזציה ואוֹטוֹקְלָב רפואי</span>
+              </li>
+              <li class="hero-feature-item">
+                <span class="feature-check">✓</span>
+                <span data-i18n="featProducts">חומרים פרימיום היפואלרגניים בלבד</span>
+              </li>
+              <li class="hero-feature-item">
+                <span class="feature-check">✓</span>
+                <span data-i18n="featDurability">עמידות מוכחת עד 4 שבועות</span>
+              </li>
+              <li class="hero-feature-item">
+                <span class="feature-check">✓</span>
+                <span data-i18n="featAtmosphere">קפה מפנק ואווירה בוטיקית אישית</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services & Price List -->
+  <section id="services" class="services-section container">
+    <div class="section-header">
+      <div class="section-subtitle" data-i18n="servicesSubtitle">הטיפולים שלנו</div>
+      <h2 class="section-title" data-i18n="servicesTitle">בחרי את הטיפול המושלם עבורך</h2>
+      <p style="color: var(--text-muted); font-size: 15px;" data-i18n="servicesHint">
+        הקליקי על הטיפול הרצוי לקביעת תור מהירה ונוחה
+      </p>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="category-tabs" id="categoryTabs">
+      <button class="cat-tab active" data-cat="all" onclick="filterCategory('all', this)" data-i18n="tabAll">הכל</button>
+      <button class="cat-tab" data-cat="gel" onclick="filterCategory('gel', this)" data-i18n="tabGel">לק ג'ל ומניקור</button>
+      <button class="cat-tab" data-cat="extensions" onclick="filterCategory('extensions', this)" data-i18n="tabExtensions">בנייה ומילוי</button>
+      <button class="cat-tab" data-cat="pedicure" onclick="filterCategory('pedicure', this)" data-i18n="tabPedicure">פדיקור</button>
+      <button class="cat-tab" data-cat="art" onclick="filterCategory('art', this)" data-i18n="tabArt">נייל ארט ושדרוגים</button>
+    </div>
+
+    <!-- Service Grid -->
+    <div class="services-grid" id="servicesGrid">
+      <!-- Injected dynamically by app.js -->
+    </div>
+  </section>
+
+  <!-- Visual Design Styles Showcase -->
+  <section class="gallery-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-subtitle" data-i18n="stylesSubtitle">סגנונות ואומנות</div>
+        <h2 class="section-title" data-i18n="stylesTitle">ההשראות המובילות של הסטודיו</h2>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <div class="gallery-art">✨</div>
+          <div class="gallery-label" data-i18n="styleChrome">Glazed Donut & Chrome</div>
+        </div>
+        <div class="gallery-item">
+          <div class="gallery-art">🌸</div>
+          <div class="gallery-label" data-i18n="styleFrench">Micro French & Nude Chic</div>
+        </div>
+        <div class="gallery-item">
+          <div class="gallery-art">💎</div>
+          <div class="gallery-label" data-i18n="styleOmbre">Baby Boomer & Ombré</div>
+        </div>
+        <div class="gallery-item">
+          <div class="gallery-art">🎨</div>
+          <div class="gallery-label" data-i18n="styleArt">Abstract Nail Art</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Client Reviews -->
+  <section id="reviews" class="reviews-section container">
+    <div class="section-header">
+      <div class="section-subtitle" data-i18n="reviewsSubtitle">ביקורות לקוחות</div>
+      <h2 class="section-title" data-i18n="reviewsTitle">חוות דעת (ביקורות)</h2>
+    </div>
+
+    <div class="reviews-action-bar">
+      <div class="reviews-summary-badge" id="reviewsSummaryBadge">
+        <span>⭐</span>
+        <span id="reviewsAvgText">5.0 מתוך 5</span>
+        <span style="opacity: 0.6;">|</span>
+        <span id="reviewsCountText">0 חוות דעת</span>
+      </div>
+      <button class="btn-primary" onclick="openReviewModal()" style="padding: 10px 22px; font-size: 14px;">
+        <span>✍️</span> <span data-i18n="writeReviewBtn">כתיבת חוות דעת</span>
+      </button>
+    </div>
+
+    <div class="reviews-grid" id="reviewsGrid">
+      <!-- Injected dynamically from API -->
+    </div>
+  </section>
+
+  <!-- Booking Modal / Step Wizard -->
+  <div id="bookingModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="wizardHeaderTitle" data-i18n="modalBookingTitle">קביעת תור</h3>
+        <button class="btn-close" onclick="closeBookingModal()">✕</button>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="wizard-progress" id="wizardProgress">
+        <div class="wizard-step-indicator active" id="indicatorStep1">
+          <span class="step-num">1</span>
+          <span data-i18n="step1Name">טיפול</span>
+        </div>
+        <div class="wizard-step-indicator" id="indicatorStep2">
+          <span class="step-num">2</span>
+          <span data-i18n="step2Name">מועד ושעה</span>
+        </div>
+        <div class="wizard-step-indicator" id="indicatorStep3">
+          <span class="step-num">3</span>
+          <span data-i18n="step3Name">פרטים ואישור</span>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <!-- STEP 1: Service Selection -->
+        <div class="step-panel active" id="stepPanel1">
+          <p style="margin-bottom: 12px; font-weight: 600; font-size: 14px; color: var(--text-muted);" data-i18n="selectPrimaryPrompt">
+            בחרי את הטיפול הראשי:
+          </p>
+          <div class="services-select-list" id="modalServiceList">
+            <!-- Injected dynamically -->
+          </div>
+
+          <div class="addon-section-title" data-i18n="addonsTitle">תוספות ושדרוגים מומלצים:</div>
+          <div class="addons-grid" id="modalAddonsGrid">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+        <!-- STEP 2: Date & Time Selection -->
+        <div class="step-panel" id="stepPanel2">
+          <div class="date-picker-wrap">
+            <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px;" data-i18n="chooseDateLabel">בחרי תאריך:</div>
+            <div class="date-scroll-row" id="dateScrollRow">
+              <!-- Dates injected dynamically -->
+            </div>
+          </div>
+
+          <div class="time-slots-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 700; font-size: 14px;" data-i18n="chooseTimeLabel">שעות פנויות:</span>
+              <span id="selectedDateSummary" style="font-size: 13px; color: var(--primary-dark); font-weight: 600;"></span>
+            </div>
+            <div id="slotsGrid" class="slots-grid">
+              <!-- Available times injected dynamically -->
+            </div>
+            <div id="noSlotsMsg" class="no-slots-msg" style="display: none;" data-i18n="noSlotsMsg">
+              אין שעות פנויות בתאריך זה, אנא בחרי תאריך אחר.
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Client Details -->
+        <div class="step-panel" id="stepPanel3">
+          <div class="booking-summary-card">
+            <div class="summary-row">
+              <span data-i18n="sumTreatment">טיפול שנבחר:</span>
+              <strong id="sumServiceName">-</strong>
+            </div>
+            <div class="summary-row">
+              <span data-i18n="sumDateTime">מועד:</span>
+              <strong id="sumDateTimeText">-</strong>
+            </div>
+            <div class="summary-row">
+              <span data-i18n="sumDuration">משך משוער:</span>
+              <span id="sumDurationText">-</span>
+            </div>
+            <div class="summary-row summary-total">
+              <span data-i18n="sumPrice">מחיר כולל:</span>
+              <span id="sumPriceText">0 ₪</span>
+            </div>
+          </div>
+
+          <form id="clientForm" onsubmit="handleBookingSubmit(event)">
+            <div class="form-group">
+              <label class="form-label" data-i18n="clientNameLabel">שם מלא *</label>
+              <input type="text" id="clientName" class="form-input" required placeholder="לדוגמה: נועה כהן">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="clientPhoneLabel">מספר טלפון (וואטסאפ) *</label>
+              <input type="tel" id="clientPhone" class="form-input" required placeholder="050-0000000">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="clientEmailLabel">אימייל (לקבלת זימון ליומן)</label>
+              <input type="email" id="clientEmail" class="form-input" placeholder="name@example.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="clientNotesLabel">הערות / בקשות מיוחדות</label>
+              <textarea id="clientNotes" class="form-input" rows="2" placeholder="למשל: דרושה הסרה של לק ישן, רעיון לעיצוב וכו'"></textarea>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;" id="cancellationNotice">
+              * קביעת התור מהווה אישור למדיניות הביטולים של הסטודיו (ביטול עד 24 שעות מראש).
+            </p>
+          </form>
+        </div>
+
+        <!-- STEP 4: Confirmation Success -->
+        <div class="step-panel" id="stepPanel4">
+          <div class="confirmation-wrap">
+            <div class="conf-icon">✓</div>
+            <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main);" data-i18n="confSuccessTitle">התור שלך נקבע בהצלחה!</h2>
+            <div class="conf-code-badge" id="confBookingCode">NL-AB1234</div>
+            <p style="color: var(--text-muted); font-size: 15px; max-width: 440px; margin: 0 auto 16px;" data-i18n="confSubtitle">
+              פרטי התור נשמרו במערכת. לחצי על הכפתור למטה כדי לשלוח אישור ישיר בוואטסאפ ולקבל תזכורת.
+            </p>
+
+            <div class="booking-summary-card" style="text-align: right; max-width: 480px; margin: 0 auto;">
+              <div class="summary-row">
+                <span data-i18n="sumName">שם:</span>
+                <strong id="confClientName">-</strong>
+              </div>
+              <div class="summary-row">
+                <span data-i18n="sumTreatment">טיפול:</span>
+                <strong id="confService">-</strong>
+              </div>
+              <div class="summary-row">
+                <span data-i18n="sumDateTime">מועד:</span>
+                <strong id="confDateTime">-</strong>
+              </div>
+              <div class="summary-row summary-total">
+                <span data-i18n="sumPrice">מחיר:</span>
+                <span id="confPrice">-</span>
+              </div>
+            </div>
+
+            <div class="conf-actions">
+              <a href="#" id="confWaBtn" target="_blank" class="btn-whatsapp">
+                💬 <span data-i18n="confWaBtn">שלחי אישור בוואטסאפ לסטודיו</span>
+              </a>
+              <a href="#" id="confIcsBtn" class="btn-calendar">
+                📅 <span data-i18n="confIcsBtn">הוסיפי ליומן (Google / Apple Calendar)</span>
+              </a>
+              <button onclick="resetAndCloseBooking()" class="btn-secondary" style="margin-top: 8px;">
+                <span data-i18n="confCloseBtn">סגור / קבעי תור נוסף</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Navigation Footer -->
+      <div class="modal-footer" id="modalFooter">
+        <button type="button" class="btn-secondary" id="btnPrevStep" onclick="prevStep()" style="display: none;" data-i18n="btnBack">
+          חזור
+        </button>
+        <button type="button" class="btn-primary" id="btnNextStep" onclick="nextStep()" data-i18n="btnContinue">
+          המשך
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Review Modal -->
+  <div id="reviewModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title" data-i18n="reviewModalTitle">כתיבת חוות דעת לסטודיו</h3>
+        <button class="btn-close" onclick="closeReviewModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="reviewForm" onsubmit="handleReviewSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" data-i18n="reviewRatingLabel">הדירוג שלך: *</label>
+            <div class="star-rating-picker" id="starPicker">
+              <button type="button" class="star-btn active" data-val="1" onclick="setRating(1)">★</button>
+              <button type="button" class="star-btn active" data-val="2" onclick="setRating(2)">★</button>
+              <button type="button" class="star-btn active" data-val="3" onclick="setRating(3)">★</button>
+              <button type="button" class="star-btn active" data-val="4" onclick="setRating(4)">★</button>
+              <button type="button" class="star-btn active" data-val="5" onclick="setRating(5)">★</button>
+            </div>
+            <input type="hidden" id="reviewRatingVal" value="5">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="reviewNameLabel">השם שלך *</label>
+            <input type="text" id="reviewClientName" class="form-input" required placeholder="לדוגמה: עדי לוי">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="reviewCommentLabel">איך הייתה החוויה שלך אצל סתיו? *</label>
+            <textarea id="reviewComment" class="form-input" rows="3" required placeholder="שתפי על הטיפול, היחס, הסטריליות, העמידות של הלק..."></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" class="btn-secondary" onclick="closeReviewModal()" data-i18n="btnCancel">ביטול</button>
+            <button type="submit" class="btn-primary" id="btnSubmitReview" data-i18n="submitReviewBtn">פרסום חוות דעת</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand" style="margin-bottom: 14px;">
+            <div class="brand-icon">💅</div>
+            <div>
+              <div class="brand-name" style="color: white;" id="footerSalonName">ציפורניים של סתיו</div>
+              <div class="brand-tagline">בוטיק ציפורניים פרימיום</div>
+            </div>
+          </div>
+          <p style="color: #a89ba0; font-size: 13.5px; max-width: 320px;" data-i18n="footerAbout">
+            הקפדה בלתי מתפשרת על בריאות הציפורן, חיטוי רפואי, חומרים מובחרים ועיצובים ייחודיים שמתאימים בדיוק לאופי שלך.
+          </p>
+        </div>
+        <div>
+          <div class="footer-col-title" data-i18n="footerHoursTitle">שעות פעילות</div>
+          <p style="color: #d1c5c7; font-size: 13px; margin-bottom: 6px;">
+            <strong data-i18n="footerSunThu">ראשון - חמישי:</strong> 09:00 - 19:00
+          </p>
+          <p style="color: #d1c5c7; font-size: 13px; margin-bottom: 6px;">
+            <strong data-i18n="footerFri">שישי:</strong> 08:30 - 14:30
+          </p>
+          <p style="color: #d1c5c7; font-size: 13px;">
+            <strong data-i18n="footerSat">שבת:</strong> <span data-i18n="closed">סגור</span>
+          </p>
+        </div>
+        <div>
+          <div class="footer-col-title" data-i18n="footerContactTitle">יצירת קשר</div>
+          <a href="#" id="footerPhoneLink" class="footer-contact-item">
+            📞 <span id="footerPhone">050-1234567</span>
+          </a>
+          <a href="#" id="footerWaLink" class="footer-contact-item" target="_blank">
+            💬 <span data-i18n="footerWaText">וואטסאפ לסטודיו</span>
+          </a>
+          <div class="footer-contact-item">
+            📍 <span id="footerAddress">רחוב דיזנגוף 100, תל אביב</span>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2026 <span id="copyrightSalonName">ציפורניים של סתיו</span>. כל הזכויות שמורות.
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

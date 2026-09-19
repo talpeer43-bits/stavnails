@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול סטודיו | מערכת זימון תורים</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    body {
+      background: #f8f6f7;
+    }
+    .admin-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+    .admin-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-tabs {
+      display: flex;
+      gap: 10px;
+      margin: 24px 0 20px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .admin-tab-btn {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .admin-tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary-dark);
+    }
+    .admin-tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(201, 125, 131, 0.3);
+    }
+    .stat-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-val {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-top: 4px;
+    }
+    .stat-lbl {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    /* Filter Bar */
+    .filter-bar {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .appts-table-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 14px;
+    }
+    th {
+      background: var(--primary-subtle);
+      padding: 14px 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:hover td {
+      background: #fffcfd;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-confirmed { background: #e8f7ee; color: #2a9d8f; }
+    .status-completed { background: #e0f2fe; color: #0284c7; }
+    .status-cancelled { background: #fee2e2; color: #dc2626; }
+    .status-no_show { background: #fef3c7; color: #d97706; }
+
+    /* Action buttons in table */
+    .btn-action-sm {
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      margin-left: 4px;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-action-sm:hover {
+      background: var(--primary-subtle);
+      border-color: var(--primary);
+    }
+    .btn-wa-sm {
+      background: #e6f9ed;
+      color: #128c7e;
+      border-color: #a7f3d0;
+      text-decoration: none;
+    }
+    .btn-wa-sm:hover {
+      background: #25d366;
+      color: white;
+    }
+
+    /* Auth lock screen */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(253, 251, 251, 0.96);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .auth-box {
+      background: white;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .pin-input {
+      letter-spacing: 8px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    /* Tab panels */
+    .tab-view {
+      display: none;
+    }
+    .tab-view.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Admin Login Overlay -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-box">
+      <div style="font-size: 44px; margin-bottom: 12px;">🔒</div>
+      <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;">כניסה למערכת ניהול</h2>
+      <p style="color: var(--text-muted); font-size: 13.5px; margin-bottom: 24px;">
+        הזיני את קוד ה-PIN של הסטודיו (ברירת מחדל: 1234)
+      </p>
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <input type="password" id="adminPinInput" class="form-input pin-input" maxlength="8" placeholder="••••" required autofocus>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+          כניסה לניהול
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Header -->
+  <header class="admin-header">
+    <div class="container admin-nav">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="/" style="text-decoration: none;" title="מעבר לאתר הראשי">
+          <div class="brand-icon">💅</div>
+        </a>
+        <div>
+          <h1 style="font-size: 19px; font-weight: 800;" id="adminSalonTitle">ניהול ציפורניים של סתיו</h1>
+          <span style="font-size: 12px; color: var(--primary); font-weight: 700;">מערכת ניהול תורים והגדרות</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <a href="/" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">
+          🌐 צפייה באתר
+        </a>
+        <button onclick="logoutAdmin()" class="btn-action-sm" style="color: #dc2626; border-color: #fecaca; padding: 8px 14px;">
+          יציאה
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-bottom: 80px;">
+
+    <!-- Summary Statistics -->
+    <div class="stat-cards-grid" style="margin-top: 24px;">
+      <div class="stat-card">
+        <div class="stat-lbl">תורים להיום</div>
+        <div class="stat-val" id="statTodayCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">סה״כ תורים החודש</div>
+        <div class="stat-val" id="statMonthCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">הכנסה חודשית משוערת</div>
+        <div class="stat-val" id="statMonthRevenue">0 ₪</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" onclick="switchAdminTab('appts', this)">
+        📅 יומן תורים
+      </button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('services', this)">
+        💅 שירותים ומחירון
+      </button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('hours', this)">
+        ⏰ שעות פעילות
+      </button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('reviews', this)">
+        💬 חוות דעת (ביקורות)
+      </button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('settings', this)">
+        ⚙️ הגדרות סטודיו
+      </button>
+    </div>
+
+    <!-- TAB 1: Appointments -->
+    <section id="tabViewAppts" class="tab-view active">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <button class="btn-action-sm" onclick="filterDateShortcut('today')">היום</button>
+          <button class="btn-action-sm" onclick="filterDateShortcut('tomorrow')">מחר</button>
+          <button class="btn-action-sm" onclick="filterDateShortcut('all')">כל התורים</button>
+          <input type="date" id="filterDateInput" class="form-input" style="width: auto; padding: 6px 12px; font-size: 13px;" onchange="loadAppointments()">
+          <select id="filterStatusSelect" class="form-input" style="width: auto; padding: 6px 12px; font-size: 13px;" onchange="loadAppointments()">
+            <option value="all">כל הסטטוסים</option>
+            <option value="confirmed">מאושר</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">מבוטל</option>
+            <option value="no_show">לא הגיעה</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <input type="text" id="searchClientInput" placeholder="חיפוש לפי שם / טלפון..." class="form-input" style="width: 200px; padding: 6px 12px; font-size: 13px;" oninput="loadAppointments()">
+          <button class="btn-primary" onclick="openManualBookingModal()" style="padding: 8px 18px; font-size: 13px;">
+            + הוסף תור ידני
+          </button>
+        </div>
+      </div>
+
+      <div class="appts-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>תאריך ושעה</th>
+              <th>לקוח/ה</th>
+              <th>טלפון & וואטסאפ</th>
+              <th>טיפול</th>
+              <th>מחיר</th>
+              <th>סטטוס</th>
+              <th>הערות</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="apptsTableBody">
+            <!-- Injected by admin.js -->
+          </tbody>
+        </table>
+        <div id="noApptsMsg" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+          לא נמצאו תורים לפי הסינון הנוכחי.
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Services Management -->
+    <section id="tabViewServices" class="tab-view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 800;">שירותים, טיפולים ומחירים</h2>
+        <button class="btn-primary" onclick="openNewServiceModal()" style="padding: 8px 18px; font-size: 13px;">
+          + הוסף טיפול חדש
+        </button>
+      </div>
+
+      <div class="appts-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>שם טיפול (עברית)</th>
+              <th>קטגוריה</th>
+              <th>משך (דקות)</th>
+              <th>מחיר (₪)</th>
+              <th>תגית</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="adminServicesTableBody">
+            <!-- Injected by admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: Business Hours -->
+    <section id="tabViewHours" class="tab-view">
+      <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; max-width: 800px;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">הגדרת ימי ושעות פעילות</h2>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-bottom: 24px;">
+          המערכת תאפשר ללקוחות להזמין תורים אך ורק בטווח השעות הפנויות שהגדרת כאן.
+        </p>
+        <div id="hoursFormContainer">
+          <!-- Injected by admin.js -->
+        </div>
+        <button class="btn-primary" onclick="saveBusinessHours()" style="margin-top: 20px;">
+          💾 שמירת שעות פעילות
+        </button>
+      </div>
+    </section>
+
+    <!-- TAB 4: Client Reviews -->
+    <section id="tabViewReviews" class="tab-view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 800;">חוות דעת (ביקורות)</h2>
+          <p style="color: var(--text-muted); font-size: 13.5px;">חוות דעת אותנטיות שנכתבו על ידי לקוחות באתר</p>
+        </div>
+      </div>
+
+      <div class="appts-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 110px;">תאריך</th>
+              <th style="width: 140px;">שם לקוח/ה</th>
+              <th style="width: 120px;">דירוג</th>
+              <th>חוות דעת</th>
+              <th style="width: 90px;">פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="adminReviewsTableBody">
+            <!-- Injected by admin.js -->
+          </tbody>
+        </table>
+        <div id="noAdminReviewsMsg" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+          טרם נכתבו חוות דעת באתר.
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: Studio Settings -->
+    <section id="tabViewSettings" class="tab-view">
+      <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; max-width: 680px;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 18px;">פרטי הסטודיו והגדרות מערכת</h2>
+        <form onsubmit="saveSalonSettings(event)">
+          <div class="form-group">
+            <label class="form-label">שם הסטודיו (עברית)</label>
+            <input type="text" id="settingNameHe" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">שם הסטודיו (אנגלית)</label>
+            <input type="text" id="settingNameEn" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">מספר טלפון לבירורים</label>
+            <input type="text" id="settingPhone" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">מספר וואטסאפ להודעות (כולל קידומת 972, לדוגמה: 972501234567)</label>
+            <input type="text" id="settingWa" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">כתובת הסטודיו</label>
+            <input type="text" id="settingAddress" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">קוד PIN לניהול (ברירת מחדל: 1234)</label>
+            <input type="text" id="settingPin" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">מדיניות ביטולים והערות לקוח</label>
+            <textarea id="settingPolicy" class="form-input" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="margin-top: 10px;">
+            💾 שמור שינויים
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Service Edit / Add Modal -->
+  <div id="serviceModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="serviceModalTitle">עריכת טיפול</h3>
+        <button class="btn-close" onclick="closeServiceModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="saveServiceForm(event)">
+          <input type="hidden" id="editServiceId">
+          <div class="form-group">
+            <label class="form-label">שם הטיפול (עברית) *</label>
+            <input type="text" id="srvNameHe" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">שם הטיפול (אנגלית)</label>
+            <input type="text" id="srvNameEn" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">קטגוריה *</label>
+            <select id="srvCategory" class="form-input">
+              <option value="gel">לק ג'ל ומניקור (gel)</option>
+              <option value="extensions">בנייה ומילוי (extensions)</option>
+              <option value="pedicure">פדיקור (pedicure)</option>
+              <option value="art">נייל ארט ותוספות (art)</option>
+              <option value="care">הסרה וטיפוח (care)</option>
+            </select>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">משך הטיפול (דקות) *</label>
+              <input type="number" id="srvDuration" class="form-input" required min="10" step="5" value="60">
+            </div>
+            <div class="form-group">
+              <label class="form-label">מחיר (₪) *</label>
+              <input type="number" id="srvPrice" class="form-input" required min="0" step="5" value="140">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">תיאור הטיפול</label>
+            <textarea id="srvDescHe" class="form-input" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">תגית מיוחדת (למשל: הכי פופולרי ✨)</label>
+            <input type="text" id="srvBadgeHe" class="form-input">
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+            <button type="button" class="btn-secondary" onclick="closeServiceModal()">ביטול</button>
+            <button type="submit" class="btn-primary">שמירה</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Booking Modal -->
+  <div id="manualBookingModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">הוספת תור ידני (טלפוני / ווק-אין)</h3>
+        <button class="btn-close" onclick="closeManualBookingModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleManualBookingSubmit(event)">
+          <div class="form-group">
+            <label class="form-label">שם הלקוח/ה *</label>
+            <input type="text" id="manualName" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">מספר טלפון *</label>
+            <input type="tel" id="manualPhone" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">טיפול *</label>
+            <select id="manualServiceSelect" class="form-input" required>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">תאריך *</label>
+              <input type="date" id="manualDate" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">שעת התחלה *</label>
+              <input type="time" id="manualStartTime" class="form-input" required value="10:00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">הערות</label>
+            <textarea id="manualNotes" class="form-input" rows="2" placeholder="למשל: תור טלפוני"></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+            <button type="button" class="btn-secondary" onclick="closeManualBookingModal()">ביטול</button>
+            <button type="submit" class="btn-primary">הוספת תור</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>
