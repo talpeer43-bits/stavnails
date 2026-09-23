@@ -92,7 +92,7 @@ def init_db():
             date TEXT NOT NULL,
             start_time TEXT NOT NULL,
             end_time TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'confirmed',
+            status TEXT NOT NULL DEFAULT 'pending',
             notes TEXT,
             created_at TEXT NOT NULL,
             FOREIGN KEY (service_id) REFERENCES services(id)
@@ -169,7 +169,7 @@ def init_db():
             date TEXT NOT NULL,
             start_time TEXT NOT NULL,
             end_time TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'confirmed',
+            status TEXT NOT NULL DEFAULT 'pending',
             notes TEXT,
             created_at TEXT NOT NULL,
             FOREIGN KEY (service_id) REFERENCES services(id)

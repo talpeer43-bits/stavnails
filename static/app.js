@@ -68,10 +68,10 @@ const translations = {
     sumName: 'שם הלקוח/ה:',
     clientNameLabel: 'שם מלא *',
     clientPhoneLabel: 'מספר טלפון (וואטסאפ) *',
-    clientEmailLabel: 'אימייל (לקבלת זימון ליומן)',
+    clientEmailLabel: 'אימייל (לקבלת הודעת אישור התור) *',
     clientNotesLabel: 'הערות / בקשות מיוחדות',
-    confSuccessTitle: 'התור שלך נקבע בהצלחה!',
-    confSubtitle: 'פרטי התור נשמרו במערכת ונשלחו ישירות למייל של הסטודיו.',
+    confSuccessTitle: 'בקשת התור התקבלה וממתינה לאישור!',
+    confSubtitle: 'פרטי הבקשה נשלחו ישירות לסטודיו. סתיו תאשר את התור ותקבלי הודעת אישור למייל שלך!',
     confEmailBtn: 'שליחת מייל לסטודיו',
     confIcsBtn: 'הוסיפי ליומן (Google / Apple Calendar)',
     confCloseBtn: 'סגור / קבעי תור נוסף',
@@ -141,10 +141,10 @@ const translations = {
     sumName: 'Client Name:',
     clientNameLabel: 'Full Name *',
     clientPhoneLabel: 'Phone Number (WhatsApp) *',
-    clientEmailLabel: 'Email (for calendar invite)',
+    clientEmailLabel: 'Email (to receive booking confirmation) *',
     clientNotesLabel: 'Notes / Special Requests',
-    confSuccessTitle: 'Appointment Confirmed!',
-    confSubtitle: 'Your booking has been saved and sent directly to the studio email.',
+    confSuccessTitle: 'Booking Request Received!',
+    confSubtitle: 'Your booking request was sent to the studio. Stav will confirm it and you will receive an email confirmation!',
     confEmailBtn: 'Send Email to Studio',
     confIcsBtn: 'Add to Calendar (Google / Apple)',
     confCloseBtn: 'Close / Book Another',
@@ -644,7 +644,9 @@ function renderConfirmationStep(booking) {
   const isHe = appState.lang === 'he';
   const currency = appState.settings.currency_symbol || '₪';
 
-  document.getElementById('confBookingCode').innerText = booking.booking_code;
+  const isPending = booking.status === 'pending';
+  const badgeSuffix = isPending ? (isHe ? ' (ממתין לאישור ⏳)' : ' (Pending ⏳)') : '';
+  document.getElementById('confBookingCode').innerText = `${booking.booking_code}${badgeSuffix}`;
   document.getElementById('confClientName').innerText = booking.client_name;
   document.getElementById('confService').innerText = isHe ? booking.service_name_he : booking.service_name_en;
   document.getElementById('confDateTime').innerText = `${booking.date} | ${booking.start_time} - ${booking.end_time}`;

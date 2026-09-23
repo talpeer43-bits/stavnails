@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import random
@@ -8,31 +9,44 @@ import urllib.request
 from datetime import datetime, date, timedelta, time
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Query, Header, Depends, status
+from fastapi import FastAPI, HTTPException, Query, Header, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from database import get_db_connection, init_db
 
 NOTIFICATION_EMAIL = "talpeer1909@gmail.com"
+ACTION_SECRET = os.environ.get("ACTION_SECRET", "stav_nails_secret_2026")
 
-def send_booking_email_async(booking_info: dict):
+def generate_action_token(booking_code: str) -> str:
+    return hashlib.sha256(f"{booking_code}_{ACTION_SECRET}".encode("utf-8")).hexdigest()[:16]
+
+
+def send_booking_email_async(booking_info: dict, base_url: str = ""):
     def _worker():
         try:
-            subject = f"💅 תור חדש באתר: {booking_info.get('client_name')} ({booking_info.get('date')} {booking_info.get('start_time')})"
+            b_code = booking_info.get("booking_code")
+            token = generate_action_token(b_code)
+            site = base_url.rstrip("/") if base_url else "https://stavnails.onrender.com"
+            approve_url = f"{site}/api/appointments/action/{b_code}?action=approve&token={token}"
+            reject_url = f"{site}/api/appointments/action/{b_code}?action=reject&token={token}"
+
+            subject = f"⏳ בקשת תור חדשה: {booking_info.get('client_name')} ({booking_info.get('date')} {booking_info.get('start_time')})"
             data = {
                 "_subject": subject,
+                "סטטוס": "ממתין לאישורך ⏳",
                 "שם_הלקוחה": booking_info.get("client_name"),
                 "טלפון": booking_info.get("client_phone"),
                 "אימייל_לקוחה": booking_info.get("client_email") or "לא צוין",
                 "טיפול": booking_info.get("service_name"),
-                "תאריך": booking_info.get("date"),
-                "שעה": f"{booking_info.get('start_time')} - {booking_info.get('end_time')}",
+                "תאריך_ושעה": f"{booking_info.get('date')} בשעה {booking_info.get('start_time')} - {booking_info.get('end_time')}",
                 "מחיר_כולל": f"{booking_info.get('total_price')} ₪",
-                "קוד_הזמנה": booking_info.get("booking_code"),
-                "הערות": booking_info.get("notes") or "ללא"
+                "קוד_הזמנה": b_code,
+                "הערות": booking_info.get("notes") or "ללא",
+                "👉_לחצי_כאן_לאישור_התור_✅": approve_url,
+                "👉_לחצי_כאן_לדחיית_התור_❌": reject_url
             }
             req = urllib.request.Request(
                 f"https://formsubmit.co/ajax/{NOTIFICATION_EMAIL}",
@@ -50,6 +64,48 @@ def send_booking_email_async(booking_info: dict):
                 pass
         except Exception as e:
             print("Failed to send booking notification email:", e)
+
+    t = threading.Thread(target=_worker, daemon=True)
+    t.start()
+
+def send_client_status_email_async(client_email: str, client_name: str, service_name: str, date_str: str, start_time: str, is_approved: bool):
+    if not client_email or "@" not in client_email:
+        return
+    def _worker():
+        try:
+            if is_approved:
+                subject = f"✨ התור שלך בציפורניים של סתיו אושר בהצלחה! 💅"
+                status_text = "התור שלך אושר בהצלחה! מחכים לראותך בסטודיו."
+            else:
+                subject = f"הודעה בנוגע לבקשת התור שלך בציפורניים של סתיו"
+                status_text = "לצערנו המועד שביקשת אינו פנוי כרגע. נשמח שתבחרי מועד חלופי באתר."
+
+            data = {
+                "_subject": subject,
+                "הודעה": status_text,
+                "שם_הלקוחה": client_name,
+                "טיפול": service_name,
+                "תאריך": date_str,
+                "שעה": start_time,
+                "סטטוס_התור": "מאושר סופית ✅" if is_approved else "לא אושר / מבוטל ❌",
+                "סטודיו": "ציפורניים של סתיו - 053-9860150"
+            }
+            req = urllib.request.Request(
+                f"https://formsubmit.co/ajax/{client_email}",
+                data=json.dumps(data).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Referer": "https://stavnails.com",
+                    "Origin": "https://stavnails.com",
+                    "User-Agent": "Mozilla/5.0"
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                pass
+        except Exception as e:
+            print("Failed to send client status email:", e)
 
     t = threading.Thread(target=_worker, daemon=True)
     t.start()
@@ -297,7 +353,7 @@ def get_availability(
     }
 
 @app.post("/api/appointments")
-def create_appointment(payload: AppointmentCreate):
+def create_appointment(payload: AppointmentCreate, request: Request):
     conn = get_db_connection()
 
     # Verify service
@@ -347,7 +403,7 @@ def create_appointment(payload: AppointmentCreate):
         INSERT INTO appointments (
             booking_code, client_name, client_phone, client_email,
             service_id, date, start_time, end_time, status, notes, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
     """, (
         code,
         payload.client_name.strip(),
@@ -382,7 +438,12 @@ def create_appointment(payload: AppointmentCreate):
     )
     wa_url = f"https://wa.me/{wa_num}?text={urllib.parse.quote(wa_text)}"
 
-    # Send email notification asynchronously
+    # Determine base url for action links in owner email
+    proto = request.headers.get("x-forwarded-proto", "https")
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host") or "stavnails.onrender.com"
+    base_url = f"{proto}://{host}"
+
+    # Send email notification asynchronously with action links
     send_booking_email_async({
         "client_name": payload.client_name,
         "client_phone": payload.client_phone,
@@ -394,10 +455,11 @@ def create_appointment(payload: AppointmentCreate):
         "total_price": total_price,
         "booking_code": code,
         "notes": payload.notes
-    })
+    }, base_url=base_url)
 
     return {
         "success": True,
+        "status": "pending",
         "booking_code": code,
         "client_name": payload.client_name,
         "date": payload.date,
@@ -478,6 +540,117 @@ END:VCALENDAR"""
         media_type="text/calendar",
         headers={"Content-Disposition": f"attachment; filename=nail_appointment_{booking_code}.ics"}
     )
+
+@app.get("/api/appointments/action/{booking_code}", response_class=HTMLResponse)
+def handle_appointment_action(booking_code: str, action: str = Query(...), token: str = Query(...)):
+    expected_token = generate_action_token(booking_code)
+    if token != expected_token:
+        raise HTTPException(status_code=403, detail="קישור לא תקין או פג תוקף")
+
+    conn = get_db_connection()
+    appt = conn.execute("""
+        SELECT a.*, s.name_he as service_name_he, s.name_en as service_name_en, s.price
+        FROM appointments a
+        JOIN services s ON a.service_id = s.id
+        WHERE a.booking_code = ?
+    """, (booking_code,)).fetchone()
+
+    if not appt:
+        conn.close()
+        raise HTTPException(status_code=404, detail="התור המבוקש לא נמצא במערכת")
+
+    is_approve = action.lower() == "approve"
+    new_status = "confirmed" if is_approve else "cancelled"
+
+    conn.execute("UPDATE appointments SET status = ? WHERE booking_code = ?", (new_status, booking_code))
+    conn.commit()
+    conn.close()
+
+    # Send status email notification to client if email was provided
+    if appt["client_email"]:
+        send_client_status_email_async(
+            client_email=appt["client_email"],
+            client_name=appt["client_name"],
+            service_name=appt["service_name_he"],
+            date_str=appt["date"],
+            start_time=appt["start_time"],
+            is_approved=is_approve
+        )
+
+    # Clean phone for WhatsApp button
+    clean_phone = appt["client_phone"].replace("-", "").replace(" ", "")
+    if clean_phone.startswith("0"):
+        clean_phone = "972" + clean_phone[1:]
+
+    if is_approve:
+        card_title = "התור אושר בהצלחה! ✅"
+        card_color = "#2a9d8f"
+        bg_color = "#e8f7ee"
+        desc_text = f"התור של <strong>{appt['client_name']}</strong> עודכן כמאושר במערכת, והודעת אישור נשלחה למייל שלה."
+        wa_msg = f"היי {appt['client_name']}! שמחה לעדכן שהתור שלך ל{appt['service_name_he']} בתאריך {appt['date']} בשעה {appt['start_time']} אושר בהצלחה! 💅 מחכה לראותך בציפורניים של סתיו."
+    else:
+        card_title = "התור נדחה / בוטל ❌"
+        card_color = "#dc2626"
+        bg_color = "#fee2e2"
+        desc_text = f"התור של <strong>{appt['client_name']}</strong> נדחה, השעה שוחררה במערכת והודעה נשלחה למייל של הלקוחה."
+        wa_msg = f"היי {appt['client_name']}, קיבלתי את בקשת התור שלך. לצערנו המועד שביקשת ({appt['date']} {appt['start_time']}) אינו פנוי כרגע. נשמח שתבחרי מועד חלופי באתר או תכתבי לי כאן ונמצא שעה שמתאימה לך 💅"
+
+    wa_link = f"https://wa.me/{clean_phone}?text={urllib.parse.quote(wa_msg)}"
+
+    html = f"""<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{card_title} | ציפורניים של סתיו</title>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {{
+      font-family: 'Assistant', sans-serif;
+      background: #fdf8f9;
+      margin: 0; padding: 20px;
+      display: flex; justify-content: center; align-items: center; min-height: 90vh;
+    }}
+    .card {{
+      background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      max-width: 480px; width: 100%; padding: 32px 24px; text-align: center; box-sizing: border-box;
+    }}
+    .badge {{
+      display: inline-block; background: {bg_color}; color: {card_color};
+      padding: 8px 18px; border-radius: 50px; font-size: 18px; font-weight: 800; margin-bottom: 16px;
+    }}
+    .details {{
+      background: #fcf9fa; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: right;
+      font-size: 14.5px; line-height: 1.8; border: 1px solid #f2e6e8;
+    }}
+    .btn {{
+      display: block; width: 100%; box-sizing: border-box; padding: 13px; margin: 10px 0;
+      border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 15px; text-align: center;
+    }}
+    .btn-wa {{ background: #25d366; color: white; }}
+    .btn-admin {{ background: #c97d83; color: white; }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">{card_title}</div>
+    <p style="font-size: 16px; color: #4a4044; margin: 8px 0;">{desc_text}</p>
+    <div class="details">
+      <div>👤 <strong>לקוח/ה:</strong> {appt['client_name']}</div>
+      <div>📞 <strong>טלפון:</strong> {appt['client_phone']}</div>
+      <div>✉️ <strong>אימייל:</strong> {appt['client_email'] or 'לא צוין'}</div>
+      <div>💅 <strong>טיפול:</strong> {appt['service_name_he']}</div>
+      <div>📅 <strong>מועד:</strong> {appt['date']} | {appt['start_time']} - {appt['end_time']}</div>
+      <div>💰 <strong>מחיר:</strong> {appt['price']} ₪</div>
+      <div>🔖 <strong>קוד תור:</strong> {appt['booking_code']}</div>
+    </div>
+    <a href="{wa_link}" target="_blank" class="btn btn-wa">💬 שליחת הודעה ללקוחה בוואטסאפ</a>
+    <a href="/admin" class="btn btn-admin">💻 מעבר ללוח ניהול הסטודיו</a>
+  </div>
+</body>
+</html>"""
+    return HTMLResponse(content=html)
+
 
 # --- Reviews Public Endpoints ---
 

@@ -253,8 +253,8 @@
               <input type="tel" id="clientPhone" class="form-input" required placeholder="050-0000000">
             </div>
             <div class="form-group">
-              <label class="form-label" data-i18n="clientEmailLabel">אימייל (לקבלת זימון ליומן)</label>
-              <input type="email" id="clientEmail" class="form-input" placeholder="name@example.com">
+              <label class="form-label" data-i18n="clientEmailLabel">אימייל (לקבלת הודעת אישור התור) *</label>
+              <input type="email" id="clientEmail" class="form-input" required placeholder="name@example.com">
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="clientNotesLabel">הערות / בקשות מיוחדות</label>
@@ -269,11 +269,11 @@
         <!-- STEP 4: Confirmation Success -->
         <div class="step-panel" id="stepPanel4">
           <div class="confirmation-wrap">
-            <div class="conf-icon">✓</div>
-            <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main);" data-i18n="confSuccessTitle">התור שלך נקבע בהצלחה!</h2>
-            <div class="conf-code-badge" id="confBookingCode">NL-AB1234</div>
+            <div class="conf-icon" id="confIcon" style="background: #fff7ed; color: #ea580c; border: 2px solid #fed7aa;">⏳</div>
+            <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main);" data-i18n="confSuccessTitle">בקשת התור התקבלה וממתינה לאישור!</h2>
+            <div class="conf-code-badge" id="confBookingCode" style="background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa;">NL-AB1234</div>
             <p style="color: var(--text-muted); font-size: 15px; max-width: 440px; margin: 0 auto 16px;" data-i18n="confSubtitle">
-              פרטי התור נשמרו במערכת ונשלחו ישירות למייל של הסטודיו.
+              פרטי הבקשה נשלחו ישירות לסטודיו. ניצור איתך קשר בהקדם לאישור סופי של התור.
             </p>
 
             <div class="booking-summary-card" style="text-align: right; max-width: 480px; margin: 0 auto;">

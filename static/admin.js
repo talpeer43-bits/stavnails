@@ -175,9 +175,10 @@ function renderAppointmentsTable() {
     const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`היי ${a.client_name}, תזכורת לתור שלך ב${a.date} בשעה ${a.start_time} 💅`)}`;
 
     const statusLabels = {
-      confirmed: 'מאושר',
+      pending: 'ממתין לאישור ⏳',
+      confirmed: 'מאושר ✅',
       completed: 'הושלם',
-      cancelled: 'מבוטל',
+      cancelled: 'מבוטל ❌',
       no_show: 'לא הגיעה'
     };
 
@@ -210,7 +211,13 @@ function renderAppointmentsTable() {
         ${a.notes || '-'}
       </td>
       <td>
+        ${a.status === 'pending' ? `
+          <button onclick="updateAppointmentStatus(${a.id}, 'confirmed')" class="btn-action-sm" style="background: #2a9d8f; color: white; border-color: #2a9d8f; font-weight: 700; margin-bottom: 4px;" title="אישור תור">✓ אשר</button>
+          <button onclick="updateAppointmentStatus(${a.id}, 'cancelled')" class="btn-action-sm" style="background: #fee2e2; color: #dc2626; border-color: #fca5a5; font-weight: 700; margin-bottom: 4px;" title="דחיית תור">✕ דחה</button>
+          <br>
+        ` : ''}
         <select onchange="updateAppointmentStatus(${a.id}, this.value)" class="form-input" style="padding: 4px 8px; font-size: 12px; width: auto; display: inline-block;">
+          <option value="pending" ${a.status === 'pending' ? 'selected' : ''}>ממתין לאישור</option>
           <option value="confirmed" ${a.status === 'confirmed' ? 'selected' : ''}>מאושר</option>
           <option value="completed" ${a.status === 'completed' ? 'selected' : ''}>הושלם</option>
           <option value="cancelled" ${a.status === 'cancelled' ? 'selected' : ''}>ביטול</option>
