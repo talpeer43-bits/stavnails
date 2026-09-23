@@ -802,6 +802,20 @@ def admin_update_appointment(
         WHERE id = ?
     """, (new_status, new_notes, new_date, new_start, new_end, appt_id))
     conn.commit()
+
+    # If status changed to confirmed or cancelled, notify client if email provided
+    if new_status in ["confirmed", "cancelled"] and new_status != appt["status"] and appt["client_email"]:
+        svc = conn.execute("SELECT name_he FROM services WHERE id = ?", (appt["service_id"],)).fetchone()
+        svc_name = svc["name_he"] if svc else "טיפול"
+        send_client_status_email_async(
+            client_email=appt["client_email"],
+            client_name=appt["client_name"],
+            service_name=svc_name,
+            date_str=new_date,
+            start_time=new_start,
+            is_approved=(new_status == "confirmed")
+        )
+
     conn.close()
     return {"success": True, "message": "Updated appointment"}
 
@@ -814,8 +828,8 @@ def admin_delete_appointment(appt_id: int, _: bool = Depends(verify_admin_pin)):
     return {"success": True}
 
 @app.post("/api/admin/appointments")
-def admin_create_appointment(payload: AppointmentCreate, _: bool = Depends(verify_admin_pin)):
-    return create_appointment(payload)
+def admin_create_appointment(payload: AppointmentCreate, request: Request, _: bool = Depends(verify_admin_pin)):
+    return create_appointment(payload, request=request)
 
 @app.get("/api/admin/stats")
 def admin_get_stats(_: bool = Depends(verify_admin_pin)):

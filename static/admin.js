@@ -187,15 +187,35 @@ function renderAppointmentsTable() {
         <strong>${a.date}</strong><br>
         <span style="color: var(--primary-dark); font-weight: 700;">${a.start_time} - ${a.end_time}</span>
       </td>
+    // Client email mailto
+    const clientEmail = a.client_email || '';
+    const confirmMailSubject = encodeURIComponent(`התור שלך בציפורניים של סתיו אושר בהצלחה! 💅`);
+    const confirmMailBody = encodeURIComponent(
+      `היי ${a.client_name}!\n\nשמחה לעדכן שהתור שלך נקבע ואושר בהצלחה!\n\n` +
+      `💅 טיפול: ${a.service_name_he}\n` +
+      `📅 תאריך: ${a.date}\n` +
+      `⏰ שעה: ${a.start_time} - ${a.end_time}\n` +
+      `💰 מחיר: ${a.price} ₪\n` +
+      `🔖 קוד תור: ${a.booking_code}\n\n` +
+      `מחכה לראותך בסטודיו!\nציפורניים של סתיו`
+    );
+    const gmailConfirmUrl = clientEmail ? `https://mail.google.com/mail/?view=cm&fs=1&to=${clientEmail}&su=${confirmMailSubject}&body=${confirmMailBody}` : '#';
+
+    tr.innerHTML = `
+      <td>
+        <strong>${a.date}</strong><br>
+        <span style="color: var(--primary-dark); font-weight: 700;">${a.start_time} - ${a.end_time}</span>
+      </td>
       <td>
         <strong>${a.client_name}</strong><br>
         <small style="color: var(--text-light);">${a.booking_code}</small>
       </td>
       <td>
-        <a href="tel:${a.client_phone}" style="color: var(--text-main); font-weight: 600;">${a.client_phone}</a>
-        <a href="${waUrl}" target="_blank" class="btn-action-sm btn-wa-sm" title="הודעת וואטסאפ ללקוחה">
+        <a href="tel:${a.client_phone}" style="color: var(--text-main); font-weight: 600;">${a.client_phone}</a><br>
+        <a href="${waUrl}" target="_blank" class="btn-action-sm btn-wa-sm" title="הודעת וואטסאפ ללקוחה" style="display: inline-block; margin-top: 3px;">
           💬 וואטסאפ
         </a>
+        ${clientEmail ? `<div style="font-size: 11px; color: #4f46e5; margin-top: 2px;">✉️ ${clientEmail}</div>` : ''}
       </td>
       <td>
         <strong>${a.service_name_he}</strong><br>
@@ -212,22 +232,71 @@ function renderAppointmentsTable() {
       </td>
       <td>
         ${a.status === 'pending' ? `
-          <button onclick="updateAppointmentStatus(${a.id}, 'confirmed')" class="btn-action-sm" style="background: #2a9d8f; color: white; border-color: #2a9d8f; font-weight: 700; margin-bottom: 4px;" title="אישור תור">✓ אשר</button>
-          <button onclick="updateAppointmentStatus(${a.id}, 'cancelled')" class="btn-action-sm" style="background: #fee2e2; color: #dc2626; border-color: #fca5a5; font-weight: 700; margin-bottom: 4px;" title="דחיית תור">✕ דחה</button>
-          <br>
+          <div style="margin-bottom: 6px;">
+            <button onclick="confirmAppointmentAndNotify(${a.id})" class="btn-action-sm" style="background: #2a9d8f; color: white; border: none; font-weight: 800; padding: 6px 12px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(42,157,143,0.3);" title="אישור תור ושליחת הודעה ללקוחה">✓ אשר תור</button>
+            <button onclick="rejectAppointmentAndNotify(${a.id})" class="btn-action-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-weight: 800; padding: 6px 12px; border-radius: 6px; cursor: pointer;" title="דחיית תור">✕ דחה</button>
+          </div>
         ` : ''}
         <select onchange="updateAppointmentStatus(${a.id}, this.value)" class="form-input" style="padding: 4px 8px; font-size: 12px; width: auto; display: inline-block;">
-          <option value="pending" ${a.status === 'pending' ? 'selected' : ''}>ממתין לאישור</option>
-          <option value="confirmed" ${a.status === 'confirmed' ? 'selected' : ''}>מאושר</option>
+          <option value="pending" ${a.status === 'pending' ? 'selected' : ''}>ממתין לאישור ⏳</option>
+          <option value="confirmed" ${a.status === 'confirmed' ? 'selected' : ''}>מאושר ✅</option>
           <option value="completed" ${a.status === 'completed' ? 'selected' : ''}>הושלם</option>
-          <option value="cancelled" ${a.status === 'cancelled' ? 'selected' : ''}>ביטול</option>
+          <option value="cancelled" ${a.status === 'cancelled' ? 'selected' : ''}>ביטול ❌</option>
           <option value="no_show" ${a.status === 'no_show' ? 'selected' : ''}>לא הגיעה</option>
         </select>
         <button onclick="deleteAppointment(${a.id})" class="btn-action-sm" style="color: #dc2626;" title="מחיקת תור">🗑️</button>
+        ${clientEmail ? `
+          <a href="${gmailConfirmUrl}" target="_blank" class="btn-action-sm" style="display: block; margin-top: 5px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; text-align: center; text-decoration: none; font-size: 11px; font-weight: 700;">
+            ✉️ שלח אישור במייל
+          </a>
+        ` : ''}
       </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+async function confirmAppointmentAndNotify(apptId) {
+  const appt = adminState.appointments.find(a => a.id === apptId);
+  await updateAppointmentStatus(apptId, 'confirmed');
+
+  if (appt && appt.client_email) {
+    const sendMail = confirm(`התור של ${appt.client_name} אושר בהצלחה! ✅\n\nהאם לפתוח כעת הודעת אישור למייל של הלקוחה (${appt.client_email})?`);
+    if (sendMail) {
+      const subject = encodeURIComponent(`התור שלך בציפורניים של סתיו אושר בהצלחה! 💅`);
+      const body = encodeURIComponent(
+        `היי ${appt.client_name}!\n\nשמחה לעדכן שהתור שלך נקבע ואושר בהצלחה!\n\n` +
+        `💅 טיפול: ${appt.service_name_he}\n` +
+        `📅 תאריך: ${appt.date}\n` +
+        `⏰ שעה: ${appt.start_time} - ${appt.end_time}\n` +
+        `💰 מחיר: ${appt.price} ₪\n` +
+        `🔖 קוד תור: ${appt.booking_code}\n\n` +
+        `מחכה לראותך בסטודיו!\nציפורניים של סתיו`
+      );
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${appt.client_email}&su=${subject}&body=${body}`, '_blank');
+    }
+  } else {
+    alert(`התור של ${appt ? appt.client_name : ''} אושר בהצלחה! ✅`);
+  }
+}
+
+async function rejectAppointmentAndNotify(apptId) {
+  const appt = adminState.appointments.find(a => a.id === apptId);
+  if (!confirm(`האם את בטוחה שברצונך לדחות את התור של ${appt ? appt.client_name : ''}? השעה תתפנה ביומן.`)) return;
+  await updateAppointmentStatus(apptId, 'cancelled');
+
+  if (appt && appt.client_email) {
+    const sendMail = confirm(`התור נדחה והשעה שוחררה ביומן.\n\nהאם לשלוח הודעת עדכון למייל של הלקוחה (${appt.client_email})?`);
+    if (sendMail) {
+      const subject = encodeURIComponent(`עדכון בנוגע לבקשת התור שלך בציפורניים של סתיו`);
+      const body = encodeURIComponent(
+        `היי ${appt.client_name},\n\nלצערנו המועד שביקשת (${appt.date} בשעה ${appt.start_time}) אינו פנוי כרגע.\n` +
+        `נשמח שתבחרי מועד חלופי באתר: https://stavnails.onrender.com 💅\n\n` +
+        `ציפורניים של סתיו`
+      );
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${appt.client_email}&su=${subject}&body=${body}`, '_blank');
+    }
+  }
 }
 
 async function updateAppointmentStatus(apptId, newStatus) {
