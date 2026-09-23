@@ -604,6 +604,17 @@ def handle_appointment_action(booking_code: str, action: str = Query(...), token
 
     wa_link = f"https://wa.me/{clean_phone}?text={urllib.parse.quote(wa_msg)}"
 
+    client_email = appt["client_email"] or ""
+    if is_approve:
+        mail_subj = f"התור שלך בציפורניים של סתיו אושר! 💅"
+        mail_body = f"היי {appt['client_name']}!\n\nשמחה לעדכן שהתור שלך נקבע ואושר בהצלחה!\n\nמועד: {appt['date']} בשעה {appt['start_time']} - {appt['end_time']}\nטיפול: {appt['service_name_he']}\nמחיר: {appt['price']} ₪\n\nמחכה לראותך!\nציפורניים של סתיו"
+    else:
+        mail_subj = f"עדכון בנוגע לבקשת התור שלך בציפורניים של סתיו"
+        mail_body = f"היי {appt['client_name']},\n\nלצערנו המועד שביקשת ({appt['date']} בשעה {appt['start_time']}) אינו פנוי כרגע.\nנשמח שתבחרי מועד חלופי באתר: https://stavnails.onrender.com 💅\n\nציפורניים של סתיו"
+    mail_link = f"mailto:{client_email}?subject={urllib.parse.quote(mail_subj)}&body={urllib.parse.quote(mail_body)}"
+
+    email_btn_html = f'<a href="{mail_link}" class="btn btn-mail">✉️ שליחת הודעת עדכון למייל של הלקוחה</a>' if client_email else ''
+
     html = f"""<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -635,6 +646,7 @@ def handle_appointment_action(booking_code: str, action: str = Query(...), token
       border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 15px; text-align: center;
     }}
     .btn-wa {{ background: #25d366; color: white; }}
+    .btn-mail {{ background: #4f46e5; color: white; }}
     .btn-admin {{ background: #c97d83; color: white; }}
   </style>
 </head>
@@ -652,6 +664,7 @@ def handle_appointment_action(booking_code: str, action: str = Query(...), token
       <div>🔖 <strong>קוד תור:</strong> {appt['booking_code']}</div>
     </div>
     <a href="{wa_link}" target="_blank" class="btn btn-wa">💬 שליחת הודעה ללקוחה בוואטסאפ</a>
+    {email_btn_html}
     <a href="/admin" class="btn btn-admin">💻 מעבר ללוח ניהול הסטודיו</a>
   </div>
 </body>
@@ -974,14 +987,14 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 def serve_index():
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_path):
-        return FileResponse(index_path)
+        return FileResponse(index_path, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
     return {"message": "Nail Salon Booking API is running. Frontend static/index.html is being prepared."}
 
 @app.get("/admin")
 def serve_admin():
     admin_path = os.path.join(STATIC_DIR, "admin.html")
     if os.path.exists(admin_path):
-        return FileResponse(admin_path)
+        return FileResponse(admin_path, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
     return {"message": "Admin portal static/admin.html is being prepared."}
 
 if __name__ == "__main__":
