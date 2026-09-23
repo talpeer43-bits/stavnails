@@ -656,9 +656,24 @@ function renderConfirmationStep(booking) {
   const emailBtn = document.getElementById('confEmailBtn');
   if (emailBtn) {
     const serviceName = isHe ? booking.service_name_he : booking.service_name_en;
-    const subject = encodeURIComponent(`אישור תור - ${booking.client_name} - ${booking.booking_code}`);
+    const subject = encodeURIComponent(`⏳ בקשת תור חדשה לאישור: ${booking.client_name} (${booking.date} ${booking.start_time})`);
+    const approveLink = booking.approve_url || `${window.location.origin}/admin`;
+    const rejectLink = booking.reject_url || `${window.location.origin}/admin`;
     const body = encodeURIComponent(
-      `היי סתיו!\nקבעתי תור חדש באתר 💅\n\nשם: ${booking.client_name}\nטיפול: ${serviceName}\nמועד: ${booking.date} (${booking.start_time} - ${booking.end_time})\nקוד תור: ${booking.booking_code}\nמחיר: ${booking.total_price} ${currency}\n\nאשמח לקבל אישור, תודה!`
+      `שלום סתיו,\n\nהתקבלה בקשת תור חדשה באתר:\n\n` +
+      `👤 שם הלקוחה: ${booking.client_name}\n` +
+      `📞 טלפון: ${booking.client_phone || ''}\n` +
+      `✨ טיפול: ${serviceName}\n` +
+      `📅 תאריך: ${booking.date}\n` +
+      `⏰ שעה: ${booking.start_time} - ${booking.end_time}\n` +
+      `💰 מחיר: ${booking.total_price} ${currency}\n` +
+      `🔖 קוד הזמנה: ${booking.booking_code}\n\n` +
+      `==============================\n` +
+      `פעולות מהירות לאישור או דחייה בלחיצה:\n\n` +
+      `👉 לחצי כאן לאישור התור ✅:\n${approveLink}\n\n` +
+      `👉 לחצי כאן לדחיית התור ❌:\n${rejectLink}\n` +
+      `==============================\n` +
+      `לוח ניהול הסטודיו: ${window.location.origin}/admin`
     );
     emailBtn.href = `mailto:talpeer1909@gmail.com?subject=${subject}&body=${body}`;
   }

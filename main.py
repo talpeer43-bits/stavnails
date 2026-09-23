@@ -443,6 +443,10 @@ def create_appointment(payload: AppointmentCreate, request: Request):
     host = request.headers.get("x-forwarded-host") or request.headers.get("host") or "stavnails.onrender.com"
     base_url = f"{proto}://{host}"
 
+    token = generate_action_token(code)
+    approve_url = f"{base_url}/api/appointments/action/{code}?action=approve&token={token}"
+    reject_url = f"{base_url}/api/appointments/action/{code}?action=reject&token={token}"
+
     # Send email notification asynchronously with action links
     send_booking_email_async({
         "client_name": payload.client_name,
@@ -462,6 +466,7 @@ def create_appointment(payload: AppointmentCreate, request: Request):
         "status": "pending",
         "booking_code": code,
         "client_name": payload.client_name,
+        "client_phone": payload.client_phone,
         "date": payload.date,
         "start_time": payload.start_time,
         "end_time": end_time_str,
@@ -469,7 +474,9 @@ def create_appointment(payload: AppointmentCreate, request: Request):
         "service_name_en": ", ".join(service_names_en),
         "total_price": total_price,
         "duration_minutes": total_duration,
-        "whatsapp_url": wa_url
+        "whatsapp_url": wa_url,
+        "approve_url": approve_url,
+        "reject_url": reject_url
     }
 
 @app.get("/api/appointments/{booking_code}")
