@@ -611,9 +611,13 @@ def handle_appointment_action(booking_code: str, action: str = Query(...), token
     else:
         mail_subj = f"עדכון בנוגע לבקשת התור שלך בציפורניים של סתיו"
         mail_body = f"היי {appt['client_name']},\n\nלצערנו המועד שביקשת ({appt['date']} בשעה {appt['start_time']}) אינו פנוי כרגע.\nנשמח שתבחרי מועד חלופי באתר: https://stavnails.onrender.com 💅\n\nציפורניים של סתיו"
+    gmail_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={client_email}&su={urllib.parse.quote(mail_subj)}&body={urllib.parse.quote(mail_body)}"
     mail_link = f"mailto:{client_email}?subject={urllib.parse.quote(mail_subj)}&body={urllib.parse.quote(mail_body)}"
 
-    email_btn_html = f'<a href="{mail_link}" class="btn btn-mail">✉️ שליחת הודעת עדכון למייל של הלקוחה</a>' if client_email else ''
+    email_btn_html = f'''
+    <a href="{gmail_link}" target="_blank" class="btn btn-gmail">✉️ שליחת עדכון ללקוחה דרך Gmail (למחשב)</a>
+    <a href="{mail_link}" class="btn btn-mail">📱 שליחת עדכון בתוכנת דואר (אייפון / אאוטלוק)</a>
+    ''' if client_email else ''
 
     html = f"""<!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -646,6 +650,7 @@ def handle_appointment_action(booking_code: str, action: str = Query(...), token
       border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 15px; text-align: center;
     }}
     .btn-wa {{ background: #25d366; color: white; }}
+    .btn-gmail {{ background: #ea4335; color: white; }}
     .btn-mail {{ background: #4f46e5; color: white; }}
     .btn-admin {{ background: #c97d83; color: white; }}
   </style>

@@ -298,14 +298,20 @@
               </div>
             </div>
 
-            <div class="conf-actions">
-              <a href="#" id="confEmailBtn" target="_blank" class="btn-email">
-                ✉️ <span data-i18n="confEmailBtn">שליחת מייל לסטודיו</span>
+            <div class="conf-actions" style="display: flex; flex-direction: column; gap: 10px; max-width: 440px; margin: 0 auto;">
+              <a href="#" id="confGmailBtn" target="_blank" class="btn" style="background: #ea4335; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 12px 18px; border-radius: 12px; text-decoration: none; font-size: 15px; box-shadow: 0 4px 12px rgba(234,67,53,0.25);">
+                ✉️ <span data-i18n="confGmailBtn">שליחה דרך Gmail (מומלץ במחשב)</span>
               </a>
-              <a href="#" id="confIcsBtn" class="btn-calendar">
+              <a href="#" id="confEmailBtn" target="_blank" class="btn-email" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; font-size: 14px;">
+                📱 <span data-i18n="confEmailBtn">שליחה בתוכנת דואר (אייפון / אאוטלוק)</span>
+              </a>
+              <a href="#" id="confWaBtn" target="_blank" class="btn" style="background: #25d366; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 10px 16px; border-radius: 12px; text-decoration: none; font-size: 14px;">
+                💬 <span data-i18n="confWaBtn">שליחת הודעה לסטודיו בוואטסאפ</span>
+              </a>
+              <a href="#" id="confIcsBtn" class="btn-calendar" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; font-size: 14px;">
                 📅 <span data-i18n="confIcsBtn">הוסיפי ליומן (Google / Apple Calendar)</span>
               </a>
-              <button onclick="resetAndCloseBooking()" class="btn-secondary" style="margin-top: 8px;">
+              <button onclick="resetAndCloseBooking()" class="btn-secondary" style="margin-top: 6px; padding: 10px 16px; font-size: 14px;">
                 <span data-i18n="confCloseBtn">סגור / קבעי תור נוסף</span>
               </button>
             </div>
@@ -406,6 +412,6 @@
     </div>
   </footer>
 
-  <script src="/static/app.js?v=20260924_2"></script>
+  <script src="/static/app.js?v=20260924_3"></script>
 </body>
 </html>

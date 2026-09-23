@@ -72,7 +72,9 @@ const translations = {
     clientNotesLabel: 'הערות / בקשות מיוחדות',
     confSuccessTitle: 'בקשת התור התקבלה וממתינה לאישור!',
     confSubtitle: 'פרטי הבקשה נשלחו ישירות לסטודיו. סתיו תאשר את התור ותקבלי הודעת אישור למייל שלך!',
-    confEmailBtn: 'שליחת מייל לסטודיו',
+    confGmailBtn: 'שליחה דרך Gmail (מומלץ במחשב)',
+    confEmailBtn: 'שליחה באפליקציית דואר (אייפון / אאוטלוק)',
+    confWaBtn: 'שליחת הודעה לסטודיו בוואטסאפ',
     confIcsBtn: 'הוסיפי ליומן (Google / Apple Calendar)',
     confCloseBtn: 'סגור / קבעי תור נוסף',
     btnBack: 'חזור',
@@ -145,7 +147,9 @@ const translations = {
     clientNotesLabel: 'Notes / Special Requests',
     confSuccessTitle: 'Booking Request Received!',
     confSubtitle: 'Your booking request was sent to the studio. Stav will confirm it and you will receive an email confirmation!',
-    confEmailBtn: 'Send Email to Studio',
+    confGmailBtn: 'Send via Gmail (Desktop)',
+    confEmailBtn: 'Send via Mail App (iPhone / Outlook)',
+    confWaBtn: 'Send via WhatsApp to Studio',
     confIcsBtn: 'Add to Calendar (Google / Apple)',
     confCloseBtn: 'Close / Book Another',
     btnBack: 'Back',
@@ -652,33 +656,56 @@ function renderConfirmationStep(booking) {
   document.getElementById('confDateTime').innerText = `${booking.date} | ${booking.start_time} - ${booking.end_time}`;
   document.getElementById('confPrice').innerText = `${booking.total_price} ${currency}`;
 
-  // Email button to studio
+  // Email options to studio
+  const serviceName = isHe ? booking.service_name_he : booking.service_name_en;
+  const subject = encodeURIComponent(`⏳ בקשת תור חדשה לאישור: ${booking.client_name} (${booking.date} ${booking.start_time})`);
+  const approveLink = booking.approve_url || `${window.location.origin}/admin`;
+  const rejectLink = booking.reject_url || `${window.location.origin}/admin`;
+  const body = encodeURIComponent(
+    `שלום סתיו,\n\nהתקבלה בקשת תור חדשה באתר:\n\n` +
+    `👤 שם הלקוחה: ${booking.client_name}\n` +
+    `📞 טלפון: ${booking.client_phone || ''}\n` +
+    `✨ טיפול: ${serviceName}\n` +
+    `📅 תאריך: ${booking.date}\n` +
+    `⏰ שעה: ${booking.start_time} - ${booking.end_time}\n` +
+    `💰 מחיר: ${booking.total_price} ${currency}\n` +
+    `🔖 קוד הזמנה: ${booking.booking_code}\n\n` +
+    `==============================\n` +
+    `פעולות מהירות לאישור או דחייה בלחיצה:\n\n` +
+    `👉 לחצי כאן לאישור התור ✅:\n${approveLink}\n\n` +
+    `👉 לחצי כאן לדחיית התור ❌:\n${rejectLink}\n` +
+    `==============================\n` +
+    `לוח ניהול הסטודיו: ${window.location.origin}/admin`
+  );
+
+  // 1. Gmail Web (Best for PC / Desktop browser)
+  const gmailBtn = document.getElementById('confGmailBtn');
+  if (gmailBtn) {
+    gmailBtn.href = `https://mail.google.com/mail/?view=cm&fs=1&to=talpeer1909@gmail.com&su=${subject}&body=${body}`;
+  }
+
+  // 2. Default mail app (iPhone / Outlook)
   const emailBtn = document.getElementById('confEmailBtn');
   if (emailBtn) {
-    const serviceName = isHe ? booking.service_name_he : booking.service_name_en;
-    const subject = encodeURIComponent(`⏳ בקשת תור חדשה לאישור: ${booking.client_name} (${booking.date} ${booking.start_time})`);
-    const approveLink = booking.approve_url || `${window.location.origin}/admin`;
-    const rejectLink = booking.reject_url || `${window.location.origin}/admin`;
-    const body = encodeURIComponent(
-      `שלום סתיו,\n\nהתקבלה בקשת תור חדשה באתר:\n\n` +
-      `👤 שם הלקוחה: ${booking.client_name}\n` +
-      `📞 טלפון: ${booking.client_phone || ''}\n` +
-      `✨ טיפול: ${serviceName}\n` +
-      `📅 תאריך: ${booking.date}\n` +
-      `⏰ שעה: ${booking.start_time} - ${booking.end_time}\n` +
-      `💰 מחיר: ${booking.total_price} ${currency}\n` +
-      `🔖 קוד הזמנה: ${booking.booking_code}\n\n` +
-      `==============================\n` +
-      `פעולות מהירות לאישור או דחייה בלחיצה:\n\n` +
-      `👉 לחצי כאן לאישור התור ✅:\n${approveLink}\n\n` +
-      `👉 לחצי כאן לדחיית התור ❌:\n${rejectLink}\n` +
-      `==============================\n` +
-      `לוח ניהול הסטודיו: ${window.location.origin}/admin`
-    );
     emailBtn.href = `mailto:talpeer1909@gmail.com?subject=${subject}&body=${body}`;
   }
 
-  // ICS download button
+  // 3. Direct WhatsApp message to salon
+  const waBtn = document.getElementById('confWaBtn');
+  if (waBtn) {
+    const waText = encodeURIComponent(
+      `היי סתיו! קבעתי תור חדש באתר 💅\n\n` +
+      `👤 שם: ${booking.client_name}\n` +
+      `✨ טיפול: ${serviceName}\n` +
+      `📅 מועד: ${booking.date} (${booking.start_time} - ${booking.end_time})\n` +
+      `💰 מחיר: ${booking.total_price} ${currency}\n` +
+      `🔖 קוד הזמנה: ${booking.booking_code}\n\n` +
+      `קישור ישיר לאישור התור בלחיצה:\n${approveLink}`
+    );
+    waBtn.href = `https://wa.me/972539860150?text=${waText}`;
+  }
+
+  // 4. ICS download button
   const icsBtn = document.getElementById('confIcsBtn');
   if (icsBtn) {
     icsBtn.href = `/api/appointments/ics/${booking.booking_code}`;
