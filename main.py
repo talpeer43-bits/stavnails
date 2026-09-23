@@ -188,7 +188,7 @@ class SettingsUpdate(BaseModel):
     address_he: str
     address_en: str
     instagram: Optional[str] = ""
-    admin_pin: Optional[str] = "1234"
+    admin_pin: Optional[str] = "1909"
     cancellation_policy_he: Optional[str] = ""
     cancellation_policy_en: Optional[str] = ""
     slot_interval_minutes: Optional[int] = 30
@@ -206,7 +206,7 @@ def verify_admin_pin(x_admin_pin: Optional[str] = Header(None)):
     conn = get_db_connection()
     row = conn.execute("SELECT admin_pin FROM settings WHERE id = 1").fetchone()
     conn.close()
-    expected_pin = row["admin_pin"] if row else "1234"
+    expected_pin = row["admin_pin"] if row else "1909"
     if not x_admin_pin or x_admin_pin != expected_pin:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin PIN")
     return True
@@ -724,7 +724,7 @@ def admin_login(payload: AdminLogin):
     conn = get_db_connection()
     row = conn.execute("SELECT admin_pin FROM settings WHERE id = 1").fetchone()
     conn.close()
-    expected = row["admin_pin"] if row else "1234"
+    expected = row["admin_pin"] if row else "1909"
     if payload.pin == expected:
         return {"success": True, "token": expected}
     raise HTTPException(status_code=401, detail="קוד PIN שגוי")

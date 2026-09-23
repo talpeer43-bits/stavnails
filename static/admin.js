@@ -588,7 +588,7 @@ async function loadSalonSettings() {
       document.getElementById('settingPhone').value = adminState.settings.phone || '';
       document.getElementById('settingWa').value = adminState.settings.whatsapp_number || '';
       document.getElementById('settingAddress').value = adminState.settings.address_he || '';
-      document.getElementById('settingPin').value = adminState.settings.admin_pin || '1234';
+      document.getElementById('settingPin').value = adminState.settings.admin_pin || '1909';
       document.getElementById('settingPolicy').value = adminState.settings.cancellation_policy_he || '';
       document.getElementById('adminSalonTitle').innerText = `ניהול ${adminState.settings.salon_name_he}`;
     }

@@ -48,7 +48,7 @@ def init_db():
             address_he TEXT NOT NULL,
             address_en TEXT NOT NULL,
             instagram TEXT,
-            admin_pin TEXT NOT NULL DEFAULT '1234',
+            admin_pin TEXT NOT NULL DEFAULT '1909',
             cancellation_policy_he TEXT,
             cancellation_policy_en TEXT,
             currency_symbol TEXT DEFAULT 'â‚ª',
@@ -125,7 +125,7 @@ def init_db():
             address_he TEXT NOT NULL,
             address_en TEXT NOT NULL,
             instagram TEXT,
-            admin_pin TEXT NOT NULL DEFAULT '1234',
+            admin_pin TEXT NOT NULL DEFAULT '1909',
             cancellation_policy_he TEXT,
             cancellation_policy_en TEXT,
             currency_symbol TEXT DEFAULT '₪',
@@ -201,10 +201,13 @@ def init_db():
         INSERT INTO settings (id, salon_name_he, salon_name_en, phone, whatsapp_number,
             address_he, address_en, instagram, admin_pin, cancellation_policy_he, cancellation_policy_en
         ) VALUES (1, 'ציפורניים של סתיו', 'Stav''s Nails', '', '',
-            'רחוב דיזנגוף 100, תל אביב', '100 Dizengoff St, Tel Aviv', '@stav_nails', '1234',
+            'רחוב דיזנגוף 100, תל אביב', '100 Dizengoff St, Tel Aviv', '@stav_nails', '1909',
             'ביטול תור יתאפשר עד 24 שעות לפני מועד הטיפול ללא חיוב.',
             'Cancellations allowed up to 24 hours prior to appointment.')
         """)
+
+    # Always ensure admin_pin is 1909
+    cursor.execute("UPDATE settings SET admin_pin = '1909' WHERE id = 1")
 
     cursor.execute("SELECT COUNT(*) FROM business_hours")
     if _rowcount(cursor) == 0:
