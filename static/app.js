@@ -71,8 +71,8 @@ const translations = {
     clientEmailLabel: 'אימייל (לקבלת זימון ליומן)',
     clientNotesLabel: 'הערות / בקשות מיוחדות',
     confSuccessTitle: 'התור שלך נקבע בהצלחה!',
-    confSubtitle: 'פרטי התור נשמרו במערכת. לחצי על הכפתור למטה כדי לשלוח אישור ישיר בוואטסאפ ולקבל תזכורת.',
-    confWaBtn: 'שלחי אישור בוואטסאפ לסטודיו',
+    confSubtitle: 'פרטי התור נשמרו במערכת ונשלחו ישירות למייל של הסטודיו.',
+    confEmailBtn: 'שליחת מייל לסטודיו',
     confIcsBtn: 'הוסיפי ליומן (Google / Apple Calendar)',
     confCloseBtn: 'סגור / קבעי תור נוסף',
     btnBack: 'חזור',
@@ -144,8 +144,8 @@ const translations = {
     clientEmailLabel: 'Email (for calendar invite)',
     clientNotesLabel: 'Notes / Special Requests',
     confSuccessTitle: 'Appointment Confirmed!',
-    confSubtitle: 'Your booking has been saved. Click below to send a WhatsApp confirmation or add it to your personal calendar.',
-    confWaBtn: 'Send WhatsApp Confirmation',
+    confSubtitle: 'Your booking has been saved and sent directly to the studio email.',
+    confEmailBtn: 'Send Email to Studio',
     confIcsBtn: 'Add to Calendar (Google / Apple)',
     confCloseBtn: 'Close / Book Another',
     btnBack: 'Back',
@@ -201,15 +201,19 @@ function updateSalonBranding() {
     document.getElementById('copyrightSalonName').innerText = name;
     document.title = `${name} | ${isHe ? 'קביעת תור אונליין' : 'Book Appointment'}`;
   }
-  if (appState.settings.phone) {
-    document.getElementById('footerPhone').innerText = appState.settings.phone;
-    document.getElementById('footerPhoneLink').href = `tel:${appState.settings.phone}`;
+  const phoneEl = document.getElementById('footerPhone');
+  if (phoneEl && appState.settings.phone) {
+    phoneEl.innerText = appState.settings.phone;
+    const phoneLinkEl = document.getElementById('footerPhoneLink');
+    if (phoneLinkEl) phoneLinkEl.href = `tel:${appState.settings.phone}`;
   }
   if (address) {
-    document.getElementById('footerAddress').innerText = address;
+    const addressEl = document.getElementById('footerAddress');
+    if (addressEl) addressEl.innerText = address;
   }
-  if (appState.settings.whatsapp_number) {
-    document.getElementById('footerWaLink').href = `https://wa.me/${appState.settings.whatsapp_number}`;
+  const waLinkEl = document.getElementById('footerWaLink');
+  if (waLinkEl && appState.settings.whatsapp_number) {
+    waLinkEl.href = `https://wa.me/${appState.settings.whatsapp_number}`;
   }
   if (appState.settings.cancellation_policy_he) {
     document.getElementById('cancellationNotice').innerText = isHe
@@ -611,11 +615,17 @@ async function handleBookingSubmit(e) {
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (_) {}
+
     btnNext.disabled = false;
+    btnNext.innerText = translations[appState.lang]?.confirmBookingBtn || 'אשרי והזמיני תור';
 
     if (!res.ok) {
-      alert(data.detail || 'שגיאה בשמירת התור, נסי שנית');
+      const msg = data.detail || (appState.lang === 'he' ? 'שעה זו נתפסה או שאינה זמינה, אנא בחרי שעה אחרת.' : 'Slot unavailable, please pick another.');
+      alert(msg);
       return;
     }
 
@@ -624,6 +634,7 @@ async function handleBookingSubmit(e) {
     setStep(4);
   } catch (err) {
     btnNext.disabled = false;
+    btnNext.innerText = translations[appState.lang]?.confirmBookingBtn || 'אשרי והזמיני תור';
     alert('שגיאת תקשורת עם השרת, אנא נסי שנית.');
     console.error(err);
   }
@@ -639,13 +650,22 @@ function renderConfirmationStep(booking) {
   document.getElementById('confDateTime').innerText = `${booking.date} | ${booking.start_time} - ${booking.end_time}`;
   document.getElementById('confPrice').innerText = `${booking.total_price} ${currency}`;
 
-  // WhatsApp button
-  const waBtn = document.getElementById('confWaBtn');
-  waBtn.href = booking.whatsapp_url;
+  // Email button to studio
+  const emailBtn = document.getElementById('confEmailBtn');
+  if (emailBtn) {
+    const serviceName = isHe ? booking.service_name_he : booking.service_name_en;
+    const subject = encodeURIComponent(`אישור תור - ${booking.client_name} - ${booking.booking_code}`);
+    const body = encodeURIComponent(
+      `היי סתיו!\nקבעתי תור חדש באתר 💅\n\nשם: ${booking.client_name}\nטיפול: ${serviceName}\nמועד: ${booking.date} (${booking.start_time} - ${booking.end_time})\nקוד תור: ${booking.booking_code}\nמחיר: ${booking.total_price} ${currency}\n\nאשמח לקבל אישור, תודה!`
+    );
+    emailBtn.href = `mailto:talpeer1909@gmail.com?subject=${subject}&body=${body}`;
+  }
 
   // ICS download button
   const icsBtn = document.getElementById('confIcsBtn');
-  icsBtn.href = `/api/appointments/ics/${booking.booking_code}`;
+  if (icsBtn) {
+    icsBtn.href = `/api/appointments/ics/${booking.booking_code}`;
+  }
 }
 
 function resetAndCloseBooking() {

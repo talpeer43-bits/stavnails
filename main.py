@@ -1,6 +1,10 @@
+import json
 import os
 import random
 import string
+import threading
+import urllib.parse
+import urllib.request
 from datetime import datetime, date, timedelta, time
 from typing import List, Optional
 
@@ -11,6 +15,44 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from database import get_db_connection, init_db
+
+NOTIFICATION_EMAIL = "talpeer1909@gmail.com"
+
+def send_booking_email_async(booking_info: dict):
+    def _worker():
+        try:
+            subject = f"💅 תור חדש באתר: {booking_info.get('client_name')} ({booking_info.get('date')} {booking_info.get('start_time')})"
+            data = {
+                "_subject": subject,
+                "שם_הלקוחה": booking_info.get("client_name"),
+                "טלפון": booking_info.get("client_phone"),
+                "אימייל_לקוחה": booking_info.get("client_email") or "לא צוין",
+                "טיפול": booking_info.get("service_name"),
+                "תאריך": booking_info.get("date"),
+                "שעה": f"{booking_info.get('start_time')} - {booking_info.get('end_time')}",
+                "מחיר_כולל": f"{booking_info.get('total_price')} ₪",
+                "קוד_הזמנה": booking_info.get("booking_code"),
+                "הערות": booking_info.get("notes") or "ללא"
+            }
+            req = urllib.request.Request(
+                f"https://formsubmit.co/ajax/{NOTIFICATION_EMAIL}",
+                data=json.dumps(data).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Referer": "https://stavnails.com",
+                    "Origin": "https://stavnails.com",
+                    "User-Agent": "Mozilla/5.0"
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                pass
+        except Exception as e:
+            print("Failed to send booking notification email:", e)
+
+    t = threading.Thread(target=_worker, daemon=True)
+    t.start()
 
 # Initialize database schema on startup
 init_db()
@@ -291,7 +333,7 @@ def create_appointment(payload: AppointmentCreate):
 
     if conflict:
         conn.close()
-        raise HTTPException(status_code=409, detail="This time slot was just booked by someone else. Please choose another time.")
+        raise HTTPException(status_code=409, detail="השעה שנבחרה כבר נתפסה ממש עכשיו, אנא בחרי שעה פנויה אחרת.")
 
     code = generate_booking_code()
     notes_with_addons = payload.notes or ""
@@ -338,8 +380,21 @@ def create_appointment(payload: AppointmentCreate):
         f"🔖 קוד הזמנה: {code}\n"
         f"אשמח לקבל אישור, תודה!"
     )
-    import urllib.parse
     wa_url = f"https://wa.me/{wa_num}?text={urllib.parse.quote(wa_text)}"
+
+    # Send email notification asynchronously
+    send_booking_email_async({
+        "client_name": payload.client_name,
+        "client_phone": payload.client_phone,
+        "client_email": payload.client_email,
+        "service_name": ", ".join(service_names_he),
+        "date": payload.date,
+        "start_time": payload.start_time,
+        "end_time": end_time_str,
+        "total_price": total_price,
+        "booking_code": code,
+        "notes": payload.notes
+    })
 
     return {
         "success": True,

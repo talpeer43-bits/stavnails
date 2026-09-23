@@ -1,4 +1,4 @@
-﻿import sqlite3
+import sqlite3
 import os
 from datetime import datetime, time, timedelta
 
@@ -8,7 +8,7 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "salon.db")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 def _use_postgres():
-    return bool(DATABASE_URL)
+    return False
 
 def get_db_connection():
     if _use_postgres():
@@ -200,7 +200,7 @@ def init_db():
         cursor.execute("""
         INSERT INTO settings (id, salon_name_he, salon_name_en, phone, whatsapp_number,
             address_he, address_en, instagram, admin_pin, cancellation_policy_he, cancellation_policy_en
-        ) VALUES (1, 'ציפורניים של סתיו', 'Stav''s Nails', '050-1234567', '972501234567',
+        ) VALUES (1, 'ציפורניים של סתיו', 'Stav''s Nails', '', '',
             'רחוב דיזנגוף 100, תל אביב', '100 Dizengoff St, Tel Aviv', '@stav_nails', '1234',
             'ביטול תור יתאפשר עד 24 שעות לפני מועד הטיפול ללא חיוב.',
             'Cancellations allowed up to 24 hours prior to appointment.')

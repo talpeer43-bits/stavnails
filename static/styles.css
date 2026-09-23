@@ -433,22 +433,9 @@ body {
 }
 
 .service-badge {
-  position: absolute;
-  top: 16px;
-  background: var(--gold-light);
-  color: #926d15;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 700;
+  display: none;
 }
 
-[dir="rtl"] .service-badge {
-  left: 16px;
-}
-[dir="ltr"] .service-badge {
-  right: 16px;
-}
 
 .service-header {
   margin-bottom: 12px;
@@ -984,6 +971,31 @@ body {
 .btn-whatsapp:hover {
   background: #20ba5a;
   transform: translateY(-2px);
+}
+
+.btn-email {
+  background: linear-gradient(135deg, #c97d83 0%, #a8585f 100%);
+  color: white;
+  border: none;
+  padding: 13px 24px;
+  border-radius: var(--radius-full);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(201, 125, 131, 0.35);
+  transition: var(--transition);
+}
+
+.btn-email:hover {
+  background: linear-gradient(135deg, #b86c72 0%, #94464d 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(201, 125, 131, 0.45);
 }
 
 .btn-calendar {
